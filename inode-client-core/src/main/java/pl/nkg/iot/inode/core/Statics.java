@@ -32,8 +32,8 @@ public class Statics {
     // UUID_EEPROM_CONTROL
     /// 0x04 0x01 x x x x where x is 32-bit seconds since 01.01.1970 in little endian
     public static final byte[] INODE_SET_CURRENT_TIME = {0x04, 0x01};
-    public static final byte[] INODE_TURN_OFF_ARCHIVE_DATA = {0x02, 0x01};
-    public static final byte[] INODE_SET_REVERSE_READ = {0x0B, 0x01};
+    public static final byte[] INODE_TURN_OFF_STORE_DATA = {0x02, 0x01};
+    public static final byte[] INODE_SET_READ_MODE_REVERSE = {0x0B, 0x01};
 
     /// Return: 16-bit little endian unsigned word
     public static final byte[] INODE_READ_RECORD_LAST_ADDRESS = {0x07, 0x01, 0x10, 0x00};
@@ -53,7 +53,7 @@ public class Statics {
     /// 0x04 0x02 x x x x where x is 32-bit seconds since 01.01.1970 in little endian
     public static final byte[] INODE_ERASE_AND_SET_CURRENT_TIME = {0x04, 0x02};
     public static final byte[] INODE_SET_CYCLIC_ARCHIVE = {0x09, 0x01};
-    public static final byte[] INODE_TURN_ON_ARCHIVE_DATA = {0x01, 0x01};
+    public static final byte[] INODE_TURN_ON_STORE_DATA = {0x01, 0x01};
 
     public static final int MAX_RECORD_COUNT = 256 * 256 / 8;
 }
