@@ -28,6 +28,8 @@ import java.util.UUID;
 
 public class DownloadManager implements CommunicationEventListener {
 
+    private static final String TAG = DownloadManager.class.getSimpleName();
+
     private Machine mMachine = Machine.idle;
     private CommunicationEventType mWaitForEvent;
     private UUID mWaitForServiceUUID;
@@ -41,6 +43,7 @@ public class DownloadManager implements CommunicationEventListener {
     private CommunicationProvider mCommunicationProvider;
     private DateProvider mDateProvider = new DefaultDateProvider();
     private DownloadManagerListener mDownloadManagerListener;
+    private LogProvider mLogProvider;
 
     private int mLastAddress;
     private int mRecordCount;
@@ -54,9 +57,10 @@ public class DownloadManager implements CommunicationEventListener {
     private UUID mPageCh = Statics.UUID_EEPROM_PAGE;
     private UUID mConfigDesc = Statics.UUID_CLIENT_CONFIG;
 
-    public DownloadManager(CommunicationProvider communicationProvider, DownloadManagerListener downloadManagerListener) {
+    public DownloadManager(CommunicationProvider communicationProvider, DownloadManagerListener downloadManagerListener, LogProvider logProvider) {
         mCommunicationProvider = communicationProvider;
         mDownloadManagerListener = downloadManagerListener;
+        mLogProvider = logProvider;
     }
 
     public ArrayList<DecodedRecord> getDecodedRecords() {
@@ -93,6 +97,7 @@ public class DownloadManager implements CommunicationEventListener {
         mWaitForServiceUUID = service;
         mWaitForCharacteristicUUID = characteristic;
         mWaitForDescriptorUUID = descriptor;
+        mLogProvider.log(LogProvider.DEBUG, TAG, "State changed: " + machine);
         mDownloadManagerListener.onChangeState();
     }
 
@@ -260,9 +265,11 @@ public class DownloadManager implements CommunicationEventListener {
     }
 
     private boolean iNodeSetReadAddress() {
-        int lenBytes = (8 * mRecordCount) % 65536;
+        int lenBytes = (8 * mRecordCount) % Statics.MAX_RECORD_COUNT;
         int startAddress = (mLastAddress - lenBytes) & 0xFFFF;
-        mBytesToRead = Math.min(8 * mRecordCount, 256 * 256);
+        mBytesToRead = Math.min(8 * mRecordCount, Statics.MAX_RECORD_COUNT);
+
+        mLogProvider.log(LogProvider.DEBUG, TAG, "Start address: " + startAddress + "; Len bytes: " + lenBytes + "; Bytes to read: " + mBytesToRead);
 
         switchStateWriteControl(Machine.turnOnNotification);
         mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, startAddress, lenBytes));
@@ -289,6 +296,7 @@ public class DownloadManager implements CommunicationEventListener {
             mCommunicationProvider.requestNotificationFromCharacteristic(mService, mPageCh);
         } else if (type == CommunicationEventType.characteristicChanged) {
             mReadBufferStream.write(data, 0, data.length);
+            mLogProvider.log(LogProvider.DEBUG, TAG, "Received: " + mReadBufferStream.size() + " of " + mBytesToRead + " (" + (mReadBufferStream.size() * 100 / mBytesToRead) + "%)");
             if (mReadBufferStream.size() >= mBytesToRead) {
                 mCommunicationProvider.setCharacteristicNotification(mService, mPageCh, false);
                 decodeValues(mReadBufferStream.toByteArray());

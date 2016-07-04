@@ -33,14 +33,20 @@ import pl.nkg.iot.inode.android.BleCommunicationProvider;
 import pl.nkg.iot.inode.core.DecodedRecord;
 import pl.nkg.iot.inode.core.DownloadManager;
 import pl.nkg.iot.inode.core.DownloadManagerListener;
+import pl.nkg.iot.inode.core.LogProvider;
 
-public class INodeService extends Service implements DownloadManagerListener {
+public class INodeService extends Service implements DownloadManagerListener, LogProvider {
     private final static String TAG = INodeService.class.getSimpleName();
 
     private String mBluetoothDeviceAddress;
 
     private DownloadManager mDownloadManager;
     private BleCommunicationProvider mCommunicationProvider;
+
+    @Override
+    public void log(int priority, String tag, String content) {
+        Log.println(priority, tag, content);
+    }
 
     public class LocalBinder extends Binder {
         INodeService getService() {
@@ -71,7 +77,7 @@ public class INodeService extends Service implements DownloadManagerListener {
      */
     public boolean initialize() {
         mCommunicationProvider = new BleCommunicationProvider();
-        mDownloadManager = new DownloadManager(mCommunicationProvider, this);
+        mDownloadManager = new DownloadManager(mCommunicationProvider, this, this);
         mCommunicationProvider.setCommunicationEventListener(mDownloadManager);
 
         return mCommunicationProvider.initialize(this);
@@ -112,7 +118,6 @@ public class INodeService extends Service implements DownloadManagerListener {
 
     @Override
     public void onChangeState() {
-        Log.d(TAG, "State: " + mDownloadManager.getMachine());
     }
 
     @Override

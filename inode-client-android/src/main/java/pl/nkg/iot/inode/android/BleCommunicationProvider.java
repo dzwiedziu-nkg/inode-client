@@ -54,6 +54,7 @@ public class BleCommunicationProvider implements CommunicationProvider {
 
     private CommunicationEventListener mListener;
     private boolean mDiscovered = false;
+    private boolean mDoLogin = true;
 
     public void setCommunicationEventListener(CommunicationEventListener listener) {
         mListener = listener;
@@ -88,6 +89,7 @@ public class BleCommunicationProvider implements CommunicationProvider {
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                logData("onCharacteristicRead", -1, characteristic.getValue(), false, 0, characteristic.getUuid());
                 mListener.onCommunicationEvent(CommunicationEventType.characteristicRead, characteristic.getValue(), characteristic.getService().getUuid(), characteristic.getUuid(), null);
             }
         }
@@ -95,12 +97,14 @@ public class BleCommunicationProvider implements CommunicationProvider {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
+            logData("onCharacteristicChanged", -1, characteristic.getValue(), false, 0, characteristic.getUuid());
             mListener.onCommunicationEvent(CommunicationEventType.characteristicChanged, characteristic.getValue(), characteristic.getService().getUuid(), characteristic.getUuid(), null);
         }
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                logData("onCharacteristicWrite", 1, characteristic.getValue(), false, 0, characteristic.getUuid());
                 mListener.onCommunicationEvent(CommunicationEventType.characteristicWrite, characteristic.getValue(), characteristic.getService().getUuid(), characteristic.getUuid(), null);
             }
         }
@@ -108,11 +112,51 @@ public class BleCommunicationProvider implements CommunicationProvider {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                logData("onDescriptorWrite", 1, descriptor.getValue(), false, 0, descriptor.getUuid());
                 mListener.onCommunicationEvent(CommunicationEventType.descriptorWrite, descriptor.getValue(), descriptor.getCharacteristic().getService().getUuid(), descriptor.getCharacteristic().getUuid(), descriptor.getUuid());
             }
         }
 
     };
+
+    private void logData(String eventName, int direction, byte[] data, boolean wrap8bytes, int offset, UUID uuid) {
+        if (!mDoLogin) {
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(eventName).append("(").append(uuid.toString()).append(")");
+        switch (direction) {
+            case -1:
+                sb.append(" <-- ");
+                break;
+
+            case 1:
+                sb.append(" --> ");
+                break;
+        }
+
+        String prefix = sb.toString();
+        sb = new StringBuilder();
+        sb.append(prefix);
+
+        for (int i = 0; i < offset; i++) {
+            sb.append("   ");
+        }
+
+        int pos = offset;
+        for (byte b : data) {
+            if (wrap8bytes && (pos % 8 == 0)) {
+                Log.d(TAG, sb.toString());
+                sb = new StringBuilder();
+                sb.append(prefix);
+            }
+            sb.append(String.format("%02X ", b));
+            pos++;
+        }
+
+        Log.d(TAG, sb.toString());
+    }
 
     private void runIfCan() {
         if (mDiscovered && mConnectionState == STATE_CONNECTED) {
