@@ -272,7 +272,12 @@ public class DownloadManager implements CommunicationEventListener {
         mLogProvider.log(LogProvider.DEBUG, TAG, "Start address: " + startAddress + "; Len bytes: " + lenBytes + "; Bytes to read: " + mBytesToRead);
 
         switchStateWriteControl(Machine.turnOnNotification);
-        mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, startAddress, lenBytes));
+
+        // As Elsat documentation
+        //mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, startAddress, lenBytes));
+        // but is not correct. Correct is:
+        mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, startAddress, mBytesToRead));
+
         return true;
     }
 
