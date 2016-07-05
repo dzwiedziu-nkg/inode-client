@@ -102,6 +102,7 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
      * callback.
      */
     public boolean connect(final String address) {
+        mBluetoothDeviceAddress = address;
         return mCommunicationProvider.connect(this, address);
     }
 
@@ -130,6 +131,8 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
 
     @Override
     public void onDataAvailable() {
+        StringBuilder sb = new StringBuilder();
+
         for (DecodedRecord decodedRecord : mDownloadManager.getDecodedRecords()) {
             String msg = dateFormat.format(new Date(decodedRecord.getTimestamp()))
                     + ", "
@@ -138,6 +141,16 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
                     + decodedRecord.getType();
             Log.v(TAG, msg);
             EventBus.getDefault().post(new LogEvent(LogProvider.VERBOSE, TAG, msg, null));
+
+            sb.append(mBluetoothDeviceAddress)
+                    .append("|")
+                    .append(dateFormat.format(new Date(decodedRecord.getTimestamp())))
+                    .append("|")
+                    .append(decodedRecord.getValue())
+                    .append("|")
+                    .append(decodedRecord.getType())
+                    .append("\n");
         }
+        PostRestService.startService(this, sb.toString());
     }
 }

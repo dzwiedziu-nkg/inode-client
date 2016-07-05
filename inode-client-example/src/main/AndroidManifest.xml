@@ -28,6 +28,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".MyApplication"
@@ -57,7 +58,11 @@
             android:exported="false" />
 
         <activity android:name=".ui.ScanActivity" />
-        <activity android:name=".ui.DeviceActivity"></activity>
+        <activity android:name=".ui.DeviceActivity" />
+
+        <service
+            android:name=".services.PostRestService"
+            android:exported="false"></service>
     </application>
 
 </manifest>

@@ -61,7 +61,7 @@ public class PreferencesProvider {
      * @return true - enabled, false - disabled
      */
     public boolean isUploadToRest() {
-        return StringUtils.isBlank(getPrefRest());
+        return !StringUtils.isBlank(getPrefRest());
     }
 
     /**
