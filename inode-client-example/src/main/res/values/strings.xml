@@ -22,6 +22,8 @@
 <resources>
     <string name="app_name">iNode-client example app</string>
 
+    <string name="toast_device_removed">IoT device removed: %1$s</string>
+
     <string name="action_scan">Scan BLE devices</string>
 
     <string name="action_settings">Settings</string>

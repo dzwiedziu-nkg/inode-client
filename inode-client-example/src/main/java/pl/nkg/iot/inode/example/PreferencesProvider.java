@@ -70,7 +70,7 @@ public class PreferencesProvider {
      * @return set of ID of nodes
      */
     public Set<String> getPrefNodes() {
-        return sharedPreferences.getStringSet(PREF_NODES, new HashSet<String>());
+        return new HashSet<>(sharedPreferences.getStringSet(PREF_NODES, new HashSet<String>()));
     }
 
     public void setPrefNodes(Set<String> nodes) {

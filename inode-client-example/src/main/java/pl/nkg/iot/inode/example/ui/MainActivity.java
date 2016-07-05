@@ -177,4 +177,13 @@ public class MainActivity extends AppCompatActivity
                 super.onActivityResult(requestCode, resultCode, data);
         }
     }
+
+    @Override
+    public void onNodeRemoved(String value) {
+        Set<String> nodes = mApplication.getPreferencesProvider().getPrefNodes();
+        nodes.remove(value);
+        mApplication.getPreferencesProvider().setPrefNodes(nodes);
+        mDevicesFragment.refreshList();
+        Toast.makeText(this, getResources().getString(R.string.toast_device_removed, value), Toast.LENGTH_LONG).show();
+    }
 }

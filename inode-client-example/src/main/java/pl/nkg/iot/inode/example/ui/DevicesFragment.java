@@ -23,22 +23,61 @@ package pl.nkg.iot.inode.example.ui;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class DevicesFragment extends ListFragment {
+import java.util.Set;
+
+import pl.nkg.iot.inode.example.MyApplication;
+import pl.nkg.iot.inode.example.R;
+
+public class DevicesFragment extends Fragment {
+
+    private static final String TAG = DevicesFragment.class.getSimpleName();
+
     private OnFragmentInteractionListener mListener;
     private DevicesAdapter mDevicesAdapter;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private MyApplication mApplication;
+
+    private ItemTouchHelper.SimpleCallback simpleItemTouchCallback =
+            new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                    DevicesAdapter.ViewHolder holder = (DevicesAdapter.ViewHolder) viewHolder;
+                    mListener.onNodeRemoved(holder.getValue());
+                }
+            };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        final View listFragmentView = super.onCreateView(inflater, container, savedInstanceState);
+        mApplication = (MyApplication) inflater.getContext().getApplicationContext();
+        View view = inflater.inflate(R.layout.fragment_devices, container, false);
+        view.setTag(TAG);
+
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
         refreshList();
-        return listFragmentView;
+
+        return view;
     }
 
     @Override
@@ -59,13 +98,18 @@ public class DevicesFragment extends ListFragment {
     }
 
     public void refreshList() {
-        mDevicesAdapter = new DevicesAdapter(getActivity());
-        setListAdapter(mDevicesAdapter);
+        Set<String> nodesSet = mApplication.getPreferencesProvider().getPrefNodes();
+        String[] nodes = nodesSet.toArray(new String[nodesSet.size()]);
+        if (mDevicesAdapter == null) {
+            mDevicesAdapter = new DevicesAdapter(nodes);
+            mRecyclerView.setAdapter(mDevicesAdapter);
+        } else {
+            mDevicesAdapter.setDevices(nodes);
+            mDevicesAdapter.notifyDataSetChanged();
+        }
     }
 
     public interface OnFragmentInteractionListener {
-        //void onRefreshBookList(boolean force);
-
-        //void onListItemClick(Book book);
+        void onNodeRemoved(String value);
     }
 }

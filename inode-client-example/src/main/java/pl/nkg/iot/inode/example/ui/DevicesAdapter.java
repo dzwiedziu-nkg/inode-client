@@ -21,48 +21,71 @@
 
 package pl.nkg.iot.inode.example.ui;
 
-import android.app.Activity;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import pl.nkg.iot.inode.example.R;
 
-import pl.nkg.iot.inode.example.MyApplication;
+public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
 
-public class DevicesAdapter extends ArrayAdapter<String> {
-    private final Activity context;
+    private String[] mDevices;
 
-    public DevicesAdapter(Activity context) {
-        super(context,
-                android.R.layout.simple_list_item_1,
-                new ArrayList<>(((MyApplication) context.getApplicationContext())
-                        .getPreferencesProvider().getPrefNodes()));
-        this.context = context;
+    public DevicesAdapter(String[] devices) {
+        mDevices = devices;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View rowView = convertView;
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_device, parent, false);
 
-        if (rowView == null) {
-            LayoutInflater inflater = context.getLayoutInflater();
-            rowView = inflater.inflate(android.R.layout.simple_list_item_1, null);
-
-            // configure view holder
-            ViewHolder viewHolder = new ViewHolder();
-            viewHolder.mTextView = (TextView) rowView.findViewById(android.R.id.text1);
-            rowView.setTag(viewHolder);
-        }
-
-        ViewHolder holder = (ViewHolder) rowView.getTag();
-        holder.mTextView.setText(getItem(position));
-        return rowView;
+        return new ViewHolder(v);
     }
 
-    static class ViewHolder {
-        public TextView mTextView;
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        holder.setValue(mDevices[position]);
+    }
+
+    @Override
+    public int getItemCount() {
+        return mDevices.length;
+    }
+
+    public void setDevices(String[] devices) {
+        mDevices = devices;
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        private final TextView textView;
+        private String value;
+
+        public ViewHolder(View v) {
+            super(v);
+            // Define click listener for the ViewHolder's View.
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Log.d(TAG, "Element " + getPosition() + " clicked.");
+                }
+            });
+            textView = (TextView) v.findViewById(R.id.textView);
+        }
+
+        public TextView getTextView() {
+            return textView;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+            textView.setText(value);
+        }
     }
 }
