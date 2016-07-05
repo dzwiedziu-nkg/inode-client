@@ -19,7 +19,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-package pl.nkg.iot.inode.example;
+package pl.nkg.iot.inode.example.services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -49,7 +49,7 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
     }
 
     public class LocalBinder extends Binder {
-        INodeService getService() {
+        public INodeService getService() {
             return INodeService.this;
         }
     }

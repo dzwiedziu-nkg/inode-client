@@ -1,4 +1,25 @@
-package pl.nkg.iot.inode.example;
+/*
+ * Copyright (c) by Michał Niedźwiecki 2016
+ * Contact: nkg753 on gmail or via GitHub profile: dzwiedziu-nkg
+ *
+ * This file is part of inode-client.
+ *
+ * inode-client is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * inode-client is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Foobar; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+package pl.nkg.iot.inode.example.ui;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -15,7 +36,12 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
+
+import pl.nkg.iot.inode.example.R;
+import pl.nkg.iot.inode.example.services.INodeService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -83,12 +109,32 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Intent gattServiceIntent = new Intent(this, INodeService.class);
-        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+        //bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mServiceConnection);
+        //unbindService(mServiceConnection);
     }
 }
