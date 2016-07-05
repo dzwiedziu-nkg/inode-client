@@ -40,17 +40,26 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.Arrays;
+import java.util.Set;
+
+import pl.nkg.iot.inode.example.MyApplication;
 import pl.nkg.iot.inode.example.R;
 import pl.nkg.iot.inode.example.services.INodeService;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements DevicesFragment.OnFragmentInteractionListener {
 
     private final static String TAG = MainActivity.class.getSimpleName();
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int MY_PERMISSION_RESPONSE = 2;
+    private static final int SCAN_IOT_DEVICES_RESPONSE = 3;
 
+    private BluetoothAdapter mBluetoothAdapter;
     private INodeService mINodeService;
+    private MyApplication mApplication;
+    private DevicesFragment mDevicesFragment;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -76,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mApplication = (MyApplication) getApplication();
+        mDevicesFragment = (DevicesFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
 
         // Prompt for permissions
         if (Build.VERSION.SDK_INT >= 23) {
@@ -97,9 +108,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
 
         // Checks if Bluetooth is supported on the device.
         if (mBluetoothAdapter == null) {
@@ -124,6 +134,10 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         switch (id) {
+            case R.id.action_scan:
+                startActivityForResult(new Intent(this, ScanActivity.class), SCAN_IOT_DEVICES_RESPONSE);
+                return true;
+
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
@@ -133,8 +147,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mBluetoothAdapter.isEnabled()) {
+            if (!mBluetoothAdapter.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            }
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         //unbindService(mServiceConnection);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case SCAN_IOT_DEVICES_RESPONSE:
+                Set<String> nodes = mApplication.getPreferencesProvider().getPrefNodes();
+                nodes.addAll(Arrays.asList(data.getStringArrayExtra(ScanActivity.BUNDLE_CHECKED)));
+                mApplication.getPreferencesProvider().setPrefNodes(nodes);
+                mDevicesFragment.refreshList();
+                break;
+
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }
