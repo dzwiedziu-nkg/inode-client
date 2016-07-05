@@ -38,6 +38,7 @@ import pl.nkg.iot.inode.core.DecodedRecord;
 import pl.nkg.iot.inode.core.DownloadManager;
 import pl.nkg.iot.inode.core.DownloadManagerListener;
 import pl.nkg.iot.inode.core.LogProvider;
+import pl.nkg.iot.inode.example.MyApplication;
 import pl.nkg.iot.inode.example.events.LogEvent;
 
 public class INodeService extends Service implements DownloadManagerListener, LogProvider {
@@ -84,9 +85,12 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
      * @return Return true if the initialization is successful.
      */
     public boolean initialize() {
+        MyApplication application = (MyApplication) getApplication();
+
         mCommunicationProvider = new BleCommunicationProvider(this);
         mDownloadManager = new DownloadManager(mCommunicationProvider, this, this);
         mCommunicationProvider.setCommunicationEventListener(mDownloadManager);
+        mDownloadManager.setDoEraseData(application.getPreferencesProvider().getPrefErase());
 
         return mCommunicationProvider.initialize(this);
     }
@@ -143,6 +147,8 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
             EventBus.getDefault().post(new LogEvent(LogProvider.VERBOSE, TAG, msg, null));
 
             sb.append(mBluetoothDeviceAddress)
+                    .append("|")
+                    .append(decodedRecord.getTimestamp())
                     .append("|")
                     .append(dateFormat.format(new Date(decodedRecord.getTimestamp())))
                     .append("|")
