@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) by Michał Niedźwiecki 2016
   ~ Contact: nkg753 on gmail or via GitHub profile: dzwiedziu-nkg
   ~
@@ -19,20 +19,20 @@
   ~ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   -->
 
-<resources>
-    <string name="app_name">iNode-client example app</string>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="pl.nkg.iot.inode.example.ui.DeviceActivity">
 
-    <string name="toast_device_removed">IoT device removed: %1$s</string>
+    <fragment
+        android:name="pl.nkg.iot.inode.example.ui.DeviceFragment"
+        android:id="@+id/fragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <string name="action_scan">Scan BLE devices</string>
-
-    <string name="action_settings">Settings</string>
-    <string name="pref_title_rest">Your REST service URL</string>
-    <string name="pref_description_rest">empty then upload to REST is disabled</string>
-    <string name="pref_title_erase">Erase IoT records</string>
-    <string name="pref_description_erase">After successfully acquired the records stored in your IoT device will be erased</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
-</resources>
+</FrameLayout>

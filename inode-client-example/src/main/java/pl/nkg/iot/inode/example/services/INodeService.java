@@ -21,19 +21,24 @@
 
 package pl.nkg.iot.inode.example.services;
 
+import org.greenrobot.eventbus.EventBus;
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import pl.nkg.iot.inode.android.BleCommunicationProvider;
 import pl.nkg.iot.inode.core.DecodedRecord;
 import pl.nkg.iot.inode.core.DownloadManager;
 import pl.nkg.iot.inode.core.DownloadManagerListener;
 import pl.nkg.iot.inode.core.LogProvider;
+import pl.nkg.iot.inode.example.events.LogEvent;
 
 public class INodeService extends Service implements DownloadManagerListener, LogProvider {
     private final static String TAG = INodeService.class.getSimpleName();
@@ -42,10 +47,13 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
 
     private DownloadManager mDownloadManager;
     private BleCommunicationProvider mCommunicationProvider;
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+            Locale.US);
 
     @Override
-    public void log(int priority, String tag, String content) {
+    public void println(int priority, String tag, String content, Throwable tr) {
         Log.println(priority, tag, content);
+        EventBus.getDefault().post(new LogEvent(priority, tag, content, tr));
     }
 
     public class LocalBinder extends Binder {
@@ -76,7 +84,7 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
      * @return Return true if the initialization is successful.
      */
     public boolean initialize() {
-        mCommunicationProvider = new BleCommunicationProvider();
+        mCommunicationProvider = new BleCommunicationProvider(this);
         mDownloadManager = new DownloadManager(mCommunicationProvider, this, this);
         mCommunicationProvider.setCommunicationEventListener(mDownloadManager);
 
@@ -123,7 +131,13 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
     @Override
     public void onDataAvailable() {
         for (DecodedRecord decodedRecord : mDownloadManager.getDecodedRecords()) {
-            Log.d(TAG, new Date(decodedRecord.getTimestamp()) + ", " + decodedRecord.getValue() + " " + decodedRecord.getType());
+            String msg = dateFormat.format(new Date(decodedRecord.getTimestamp()))
+                    + ", "
+                    + decodedRecord.getValue()
+                    + " "
+                    + decodedRecord.getType();
+            Log.v(TAG, msg);
+            EventBus.getDefault().post(new LogEvent(LogProvider.VERBOSE, TAG, msg, null));
         }
     }
 }

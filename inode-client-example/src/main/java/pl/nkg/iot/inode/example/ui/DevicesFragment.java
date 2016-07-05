@@ -36,7 +36,7 @@ import java.util.Set;
 import pl.nkg.iot.inode.example.MyApplication;
 import pl.nkg.iot.inode.example.R;
 
-public class DevicesFragment extends Fragment {
+public class DevicesFragment extends Fragment implements DevicesAdapter.OnClickListener {
 
     private static final String TAG = DevicesFragment.class.getSimpleName();
 
@@ -101,7 +101,7 @@ public class DevicesFragment extends Fragment {
         Set<String> nodesSet = mApplication.getPreferencesProvider().getPrefNodes();
         String[] nodes = nodesSet.toArray(new String[nodesSet.size()]);
         if (mDevicesAdapter == null) {
-            mDevicesAdapter = new DevicesAdapter(nodes);
+            mDevicesAdapter = new DevicesAdapter(nodes, this);
             mRecyclerView.setAdapter(mDevicesAdapter);
         } else {
             mDevicesAdapter.setDevices(nodes);
@@ -109,7 +109,14 @@ public class DevicesFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onClick(DevicesAdapter.ViewHolder holder) {
+        mListener.onNodeClick(holder.getValue());
+    }
+
     public interface OnFragmentInteractionListener {
         void onNodeRemoved(String value);
+
+        void onNodeClick(String value);
     }
 }

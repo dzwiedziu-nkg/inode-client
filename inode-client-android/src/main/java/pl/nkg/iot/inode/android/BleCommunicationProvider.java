@@ -37,6 +37,7 @@ import java.util.UUID;
 import pl.nkg.iot.inode.core.CommunicationEventListener;
 import pl.nkg.iot.inode.core.CommunicationEventType;
 import pl.nkg.iot.inode.core.CommunicationProvider;
+import pl.nkg.iot.inode.core.LogProvider;
 
 public class BleCommunicationProvider implements CommunicationProvider {
 
@@ -53,8 +54,13 @@ public class BleCommunicationProvider implements CommunicationProvider {
     private static final int STATE_CONNECTED = 2;
 
     private CommunicationEventListener mListener;
+    private LogProvider mLogProvider;
     private boolean mDiscovered = false;
     private boolean mDoLogin = true;
+
+    public BleCommunicationProvider(LogProvider logProvider) {
+        mLogProvider = logProvider;
+    }
 
     public void setCommunicationEventListener(CommunicationEventListener listener) {
         mListener = listener;
@@ -97,7 +103,7 @@ public class BleCommunicationProvider implements CommunicationProvider {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
-            logData("onCharacteristicChanged", -1, characteristic.getValue(), false, 0, characteristic.getUuid());
+            //logData("onCharacteristicChanged", -1, characteristic.getValue(), false, 0, characteristic.getUuid());
             mListener.onCommunicationEvent(CommunicationEventType.characteristicChanged, characteristic.getValue(), characteristic.getService().getUuid(), characteristic.getUuid(), null);
         }
 
@@ -155,7 +161,8 @@ public class BleCommunicationProvider implements CommunicationProvider {
             pos++;
         }
 
-        Log.d(TAG, sb.toString());
+        mLogProvider.println(LogProvider.VERBOSE, TAG, sb.toString(), null);
+        //Log.d(TAG, sb.toString());
     }
 
     private void runIfCan() {

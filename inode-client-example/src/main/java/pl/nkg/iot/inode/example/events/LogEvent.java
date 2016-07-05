@@ -19,15 +19,19 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-package pl.nkg.iot.inode.core;
+package pl.nkg.iot.inode.example.events;
 
-public interface LogProvider {
-    int ASSERT = 7;
-    int DEBUG = 3;
-    int ERROR = 6;
-    int INFO = 4;
-    int VERBOSE = 2;
-    int WARN = 5;
+public class LogEvent {
+    public final int priority;
+    public final String tag;
+    public final String message;
+    public final Throwable throwable;
 
-    void println(int priority, String tag, String msg, Throwable tr);
+
+    public LogEvent(int priority, String tag, String message, Throwable throwable) {
+        this.priority = priority;
+        this.tag = tag;
+        this.message = message;
+        this.throwable = throwable;
+    }
 }

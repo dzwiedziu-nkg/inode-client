@@ -97,7 +97,7 @@ public class DownloadManager implements CommunicationEventListener {
         mWaitForServiceUUID = service;
         mWaitForCharacteristicUUID = characteristic;
         mWaitForDescriptorUUID = descriptor;
-        mLogProvider.log(LogProvider.DEBUG, TAG, "State changed: " + machine);
+        mLogProvider.println(LogProvider.DEBUG, TAG, "State changed: " + machine, null);
         mDownloadManagerListener.onChangeState();
     }
 
@@ -269,14 +269,21 @@ public class DownloadManager implements CommunicationEventListener {
         int startAddress = (mLastAddress - lenBytes) & 0xFFFF;
         mBytesToRead = Math.min(8 * mRecordCount, Statics.MAX_RECORD_COUNT);
 
-        mLogProvider.log(LogProvider.DEBUG, TAG, "Start address: " + startAddress + "; Len bytes: " + lenBytes + "; Bytes to read: " + mBytesToRead);
+        mLogProvider.println(LogProvider.DEBUG, TAG,
+                "Record count: " + mRecordCount +
+                        "; Last address: " + mLastAddress +
+                        "; Start address: " + startAddress +
+                        "; Len bytes: " + lenBytes +
+                        "; Bytes to read: " + mBytesToRead, null);
 
         switchStateWriteControl(Machine.turnOnNotification);
 
         // As Elsat documentation
         //mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, startAddress, lenBytes));
         // but is not correct. Correct is:
-        mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, startAddress, mBytesToRead));
+        //mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, startAddress, mBytesToRead));
+        mBytesToRead = mLastAddress;
+        mCommunicationProvider.writeToCharacteristic(mService, mControlCh, FrameBuilder.makeWithU16LEU16LE(Statics.INODE_SET_READ_SETTINGS, 0, mLastAddress));
 
         return true;
     }
@@ -301,7 +308,8 @@ public class DownloadManager implements CommunicationEventListener {
             mCommunicationProvider.requestNotificationFromCharacteristic(mService, mPageCh);
         } else if (type == CommunicationEventType.characteristicChanged) {
             mReadBufferStream.write(data, 0, data.length);
-            mLogProvider.log(LogProvider.DEBUG, TAG, "Received: " + mReadBufferStream.size() + " of " + mBytesToRead + " (" + (mReadBufferStream.size() * 100 / mBytesToRead) + "%)");
+            //mLogProvider.println(LogProvider.DEBUG, TAG, "Received: " + mReadBufferStream.size() + " of " + mBytesToRead + " (" + (mReadBufferStream.size() * 100 / mBytesToRead) + "%)", null);
+            mLogProvider.println(LogProvider.VERBOSE, TAG, ".", null);
             if (mReadBufferStream.size() >= mBytesToRead) {
                 mCommunicationProvider.setCharacteristicNotification(mService, mPageCh, false);
                 decodeValues(mReadBufferStream.toByteArray());

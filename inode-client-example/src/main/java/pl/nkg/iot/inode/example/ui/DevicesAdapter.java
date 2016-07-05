@@ -32,9 +32,11 @@ import pl.nkg.iot.inode.example.R;
 public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
 
     private String[] mDevices;
+    private OnClickListener mOnClickListener;
 
-    public DevicesAdapter(String[] devices) {
+    public DevicesAdapter(String[] devices, OnClickListener onClickListener) {
         mDevices = devices;
+        mOnClickListener = onClickListener;
     }
 
     @Override
@@ -42,7 +44,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_device, parent, false);
 
-        return new ViewHolder(v);
+        return new ViewHolder(v, mOnClickListener);
     }
 
     @Override
@@ -63,13 +65,12 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         private final TextView textView;
         private String value;
 
-        public ViewHolder(View v) {
+        public ViewHolder(View v, final OnClickListener onClickListener) {
             super(v);
-            // Define click listener for the ViewHolder's View.
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //Log.d(TAG, "Element " + getPosition() + " clicked.");
+                    onClickListener.onClick(ViewHolder.this);
                 }
             });
             textView = (TextView) v.findViewById(R.id.textView);
@@ -87,5 +88,9 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
             this.value = value;
             textView.setText(value);
         }
+    }
+
+    public interface OnClickListener {
+        void onClick(ViewHolder holder);
     }
 }

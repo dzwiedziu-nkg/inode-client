@@ -18,16 +18,34 @@
  * along with Foobar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+package pl.nkg.iot.inode.example.ui.views;
 
-package pl.nkg.iot.inode.core;
+import android.content.Context;
+import android.util.AttributeSet;
+import android.widget.TextView;
 
-public interface LogProvider {
-    int ASSERT = 7;
-    int DEBUG = 3;
-    int ERROR = 6;
-    int INFO = 4;
-    int VERBOSE = 2;
-    int WARN = 5;
+import pl.nkg.iot.inode.core.LogProvider;
 
-    void println(int priority, String tag, String msg, Throwable tr);
+public class LogView extends TextView implements LogProvider {
+
+    public LogView(Context context) {
+        super(context);
+    }
+
+    public LogView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public LogView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
+
+    @Override
+    public void println(int priority, final String tag, final String msg, Throwable tr) {
+        if (".".equals(msg)) {
+            append(".");
+        } else {
+            append("\n" + tag + ": " + msg);
+        }
+    }
 }

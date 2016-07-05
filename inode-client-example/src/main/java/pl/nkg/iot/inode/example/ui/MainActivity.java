@@ -24,14 +24,11 @@ package pl.nkg.iot.inode.example.ui;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -45,7 +42,6 @@ import java.util.Set;
 
 import pl.nkg.iot.inode.example.MyApplication;
 import pl.nkg.iot.inode.example.R;
-import pl.nkg.iot.inode.example.services.INodeService;
 
 public class MainActivity extends AppCompatActivity
         implements DevicesFragment.OnFragmentInteractionListener {
@@ -57,29 +53,8 @@ public class MainActivity extends AppCompatActivity
     private static final int SCAN_IOT_DEVICES_RESPONSE = 3;
 
     private BluetoothAdapter mBluetoothAdapter;
-    private INodeService mINodeService;
     private MyApplication mApplication;
     private DevicesFragment mDevicesFragment;
-
-    // Code to manage Service lifecycle.
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder service) {
-            mINodeService = ((INodeService.LocalBinder) service).getService();
-            if (!mINodeService.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
-                finish();
-            }
-            // Automatically connects to the device upon successful start-up initialization.
-            mINodeService.connect("00:12:6F:91:36:12");
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mINodeService = null;
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,9 +92,6 @@ public class MainActivity extends AppCompatActivity
             finish();
             return;
         }
-
-        Intent gattServiceIntent = new Intent(this, INodeService.class);
-        //bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
     }
 
 
@@ -158,12 +130,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //unbindService(mServiceConnection);
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case SCAN_IOT_DEVICES_RESPONSE:
@@ -185,5 +151,10 @@ public class MainActivity extends AppCompatActivity
         mApplication.getPreferencesProvider().setPrefNodes(nodes);
         mDevicesFragment.refreshList();
         Toast.makeText(this, getResources().getString(R.string.toast_device_removed, value), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onNodeClick(String value) {
+        DeviceActivity.startActivity(this, value);
     }
 }
