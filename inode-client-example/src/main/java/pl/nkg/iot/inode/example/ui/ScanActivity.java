@@ -21,24 +21,27 @@
 
 package pl.nkg.iot.inode.example.ui;
 
-import android.bluetooth.BluetoothAdapter;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import java.util.Set;
 
+import pl.nkg.iot.inode.android.BleScannerEngine;
 import pl.nkg.iot.inode.example.R;
+import pl.nkg.iot.inode.example.events.BleScanDetectedEvent;
+import pl.nkg.iot.inode.example.services.BleScannerService;
 
 public class ScanActivity extends AppCompatActivity
         implements ScanFragment.OnFragmentInteractionListener {
 
     public static final String BUNDLE_CHECKED = "checked";
 
-    private BluetoothAdapter mBluetoothAdapter;
     private ScanFragment mScanFragment;
 
     @Override
@@ -47,17 +50,20 @@ public class ScanActivity extends AppCompatActivity
         setContentView(R.layout.activity_scan);
 
         mScanFragment = (ScanFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
-
-        BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-        mBluetoothAdapter.startLeScan(mLeScanCallback);
     }
 
     @Override
-    protected void onDestroy() {
-        mBluetoothAdapter.stopLeScan(mLeScanCallback);
-        super.onDestroy();
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+        BleScannerService.startService(this, BleScannerEngine.SCAN_MODE_LOW_LATENCY);
+    }
+
+    @Override
+    protected void onStop() {
+        BleScannerService.stopService(this);
+        EventBus.getDefault().unregister(this);
+        super.onStop();
     }
 
     @Override
@@ -75,17 +81,8 @@ public class ScanActivity extends AppCompatActivity
         super.onBackPressed();
     }
 
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-
-                @Override
-                public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mScanFragment.addDevice(device, rssi, scanRecord);
-                        }
-                    });
-                }
-            };
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventMainThread(BleScanDetectedEvent event) {
+        mScanFragment.addDevice(event.mBluetoothDevice, event.mRssi, event.mData);
+    }
 }
