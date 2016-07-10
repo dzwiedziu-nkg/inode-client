@@ -38,6 +38,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import pl.nkg.iot.inode.core.LogProvider;
 import pl.nkg.iot.inode.example.MyApplication;
@@ -47,7 +48,8 @@ import pl.nkg.iot.inode.example.events.LogEvent;
 public class PostRestService extends IntentService {
 
     private static final String TAG = PostRestService.class.getSimpleName();
-    private static final String EXTRA_CONTENT = "content";
+
+    private static LinkedBlockingQueue<String> sQueue = new LinkedBlockingQueue<>();
 
     public PostRestService() {
         super("PostRestService");
@@ -55,13 +57,13 @@ public class PostRestService extends IntentService {
 
     public static void startService(Context context, String content) {
         Intent intent = new Intent(context, PostRestService.class);
-        intent.putExtra(EXTRA_CONTENT, content);
+        sQueue.add(content);
         context.startService(intent);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (intent == null) {
+        if (intent == null || sQueue.size() == 0) {
             return;
         }
 
@@ -85,7 +87,7 @@ public class PostRestService extends IntentService {
             OutputStream os = urlConnection.getOutputStream();
             BufferedWriter writer = new BufferedWriter(
                     new OutputStreamWriter(os, "UTF-8"));
-            writer.write(intent.getStringExtra(EXTRA_CONTENT));
+            writer.write(sQueue.poll());
 
             writer.flush();
             writer.close();
