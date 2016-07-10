@@ -94,6 +94,7 @@ public class ScanActivity extends AppCompatActivity
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(BleScanDetectedEvent event) {
         mScanFragment.addDevice(event.mBluetoothDevice, event.mRssi, event.mData);
+        // TODO: remove after implement NAV
         byte[] data = event.mData;
         List<DecodedRecord> valuesList = new ArrayList<>();
         if (data != null) {

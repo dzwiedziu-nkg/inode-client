@@ -29,15 +29,22 @@ import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+
+import pl.nkg.iot.inode.core.RecordType;
+import pl.nkg.iot.inode.core.devices.INodeFrame;
 
 public class ScanAdapter extends BaseAdapter {
     private ArrayList<BluetoothDevice> mDevices;
     private LayoutInflater mInflater;
+    private HashMap<String, INodeFrame> mFrames;
 
     public ScanAdapter(LayoutInflater inflater) {
         super();
         this.mInflater = inflater;
         mDevices = new ArrayList<>();
+        mFrames = new HashMap<>();
     }
 
     @Override
@@ -55,10 +62,11 @@ public class ScanAdapter extends BaseAdapter {
         return i;
     }
 
-    public void addDevice(BluetoothDevice device) {
+    public void addDevice(BluetoothDevice device, int rtto, byte[] data) {
         if (!mDevices.contains(device)) {
             mDevices.add(device);
         }
+        mFrames.put(device.getAddress(), new INodeFrame(data));
     }
 
     @Override
@@ -78,10 +86,27 @@ public class ScanAdapter extends BaseAdapter {
             holder = (ViewHolder) rowView.getTag();
         }
 
+
         BluetoothDevice device = mDevices.get(position);
-        holder.mTitleTextView.setText(device.getName());
+        INodeFrame iNodeFrame = mFrames.get(device.getAddress());
+
+        String values = "";
+        switch (iNodeFrame.getDeviceType()) {
+            case iNodeCareSensorPHT:
+                values = " (";
+                values += formatDouble(iNodeFrame.getRecords().get(RecordType.temperature).getValue()) + "°C ";
+                values += formatDouble(iNodeFrame.getRecords().get(RecordType.humidity).getValue()) + "% ";
+                values += formatDouble(iNodeFrame.getRecords().get(RecordType.pressure).getValue()) + "hPa";
+                values += ")";
+        }
+
+        holder.mTitleTextView.setText(device.getName() + values);
         //holder.mSummaryTextView.setText(device.getAddress());
         return rowView;
+    }
+
+    private static String formatDouble(double v) {
+        return String.format(Locale.getDefault(), "%.1f", v);
     }
 
     static class ViewHolder {

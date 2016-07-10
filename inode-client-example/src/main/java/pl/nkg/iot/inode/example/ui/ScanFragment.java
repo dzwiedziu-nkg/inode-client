@@ -67,7 +67,7 @@ public class ScanFragment extends ListFragment {
     }
 
     public void addDevice(BluetoothDevice device, int rssi, byte[] scanRecord) {
-        mScanAdapter.addDevice(device);
+        mScanAdapter.addDevice(device, rssi, scanRecord);
         mScanAdapter.notifyDataSetChanged();
     }
 
