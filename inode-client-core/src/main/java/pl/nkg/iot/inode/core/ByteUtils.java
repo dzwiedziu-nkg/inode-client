@@ -76,4 +76,21 @@ public class ByteUtils {
                 (src[pos + 2] & 0xFF) << 16 |
                 (src[pos + 3] & 0xFF) << 24;
     }
+
+    public static String formatBytes(byte[] data, boolean wrap8bytes, int offset) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < offset; i++) {
+            sb.append("   ");
+        }
+
+        int pos = offset;
+        for (byte b : data) {
+            if (wrap8bytes && (pos % 8 == 0)) {
+                sb.append("\n");
+            }
+            sb.append(String.format("%02X ", b));
+            pos++;
+        }
+        return sb.toString();
+    }
 }

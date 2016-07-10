@@ -34,6 +34,7 @@ import android.util.Log;
 
 import java.util.UUID;
 
+import pl.nkg.iot.inode.core.ByteUtils;
 import pl.nkg.iot.inode.core.CommunicationEventListener;
 import pl.nkg.iot.inode.core.CommunicationEventType;
 import pl.nkg.iot.inode.core.CommunicationProvider;
@@ -144,22 +145,9 @@ public class BleCommunicationProvider implements CommunicationProvider {
 
         String prefix = sb.toString();
         sb = new StringBuilder();
-        sb.append(prefix);
+        sb.append(prefix).append("\n");
 
-        for (int i = 0; i < offset; i++) {
-            sb.append("   ");
-        }
-
-        int pos = offset;
-        for (byte b : data) {
-            if (wrap8bytes && (pos % 8 == 0)) {
-                Log.d(TAG, sb.toString());
-                sb = new StringBuilder();
-                sb.append(prefix);
-            }
-            sb.append(String.format("%02X ", b));
-            pos++;
-        }
+        sb.append(ByteUtils.formatBytes(data, wrap8bytes, offset));
 
         mLogProvider.println(LogProvider.VERBOSE, TAG, sb.toString(), null);
         //Log.d(TAG, sb.toString());

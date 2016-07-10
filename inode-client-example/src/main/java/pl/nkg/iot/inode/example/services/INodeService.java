@@ -48,7 +48,7 @@ public class INodeService extends Service implements DownloadManagerListener, Lo
 
     private DownloadManager mDownloadManager;
     private BleCommunicationProvider mCommunicationProvider;
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+    public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
             Locale.US);
 
     @Override

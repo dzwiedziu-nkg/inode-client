@@ -29,17 +29,27 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import pl.nkg.iot.inode.android.BleScannerEngine;
+import pl.nkg.iot.inode.core.ByteUtils;
+import pl.nkg.iot.inode.core.DecodedRecord;
+import pl.nkg.iot.inode.core.RecordType;
+import pl.nkg.iot.inode.core.ValuesDecoder;
 import pl.nkg.iot.inode.example.R;
 import pl.nkg.iot.inode.example.events.BleScanDetectedEvent;
 import pl.nkg.iot.inode.example.services.BleScannerService;
+import pl.nkg.iot.inode.example.services.INodeService;
 
 public class ScanActivity extends AppCompatActivity
         implements ScanFragment.OnFragmentInteractionListener {
 
+    private static final String TAG = ScanActivity.class.getSimpleName();
     public static final String BUNDLE_CHECKED = "checked";
 
     private ScanFragment mScanFragment;
@@ -84,5 +94,47 @@ public class ScanActivity extends AppCompatActivity
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(BleScanDetectedEvent event) {
         mScanFragment.addDevice(event.mBluetoothDevice, event.mRssi, event.mData);
+        byte[] data = event.mData;
+        List<DecodedRecord> valuesList = new ArrayList<>();
+        if (data != null) {
+
+            switch (data[6]) {
+                case (byte) 0x9D:
+                    // PHT
+                    valuesList.add(new DecodedRecord(
+                            System.currentTimeMillis(),
+                            RecordType.temperature,
+                            ValuesDecoder.decode(RecordType.temperature,
+                                    ByteUtils.extractLEU16(data, 13))));
+
+                    valuesList.add(new DecodedRecord(
+                            System.currentTimeMillis(),
+                            RecordType.pressure,
+                            ValuesDecoder.decode(RecordType.pressure,
+                                    ByteUtils.extractLEU16(data, 11))));
+
+                    valuesList.add(new DecodedRecord(
+                            System.currentTimeMillis(),
+                            RecordType.humidity,
+                            ValuesDecoder.decode(RecordType.humidity,
+                                    ByteUtils.extractLEU16(data, 15))));
+                    break;
+
+                case (byte) 0x89:
+                    Log.d(TAG, event.mBluetoothDevice.getAddress() + ": "
+                            + ByteUtils.formatBytes(event.mData, false, 0));
+                    // NAV
+                    break;
+            }
+        }
+
+        for (DecodedRecord decodedRecord : valuesList) {
+            String msg = INodeService.dateFormat.format(new Date(decodedRecord.getTimestamp()))
+                    + ", "
+                    + decodedRecord.getValue()
+                    + " "
+                    + decodedRecord.getType();
+            Log.v(TAG, msg);
+        }
     }
 }
